@@ -1,0 +1,85 @@
+== モジュール
+
+モジュールとしてコア部分から色々はがされている
+
+* ログ出力機能
+* リクエストに応答する時にヘッダを組み立てる機能
+* ファイルへのアクセスを制御する機能
+* SSI
+* CGI
+* 送信するコンテンツを圧縮して通信量を抑える機能
+* etc...
+
+=== Apacheにモジュールを追加する方法は2つ
+
+1. Apacheをコンパイルする時にコンパイルオプションで指定
+2. Apacheサーバへ動的に組み込む（mod_so.cモジュールが必要）
+
+==== Apacheサーバへ動的に組み込む(Debian)
+
+.mod_so.cが入ってるか確認
+----
+$ apachectl -l
+Compiled in modules:
+  core.c
+  mod_log_config.c
+  mod_logio.c
+  mod_version.c
+  worker.c
+  http_core.c
+  mod_so.c  <=========# これ!!
+----
+
+.動的にロードされたモジュールを調べる(-M)
+----
+$ apache2 -M
+apache2: bad user name ${APACHE_RUN_USER}
+# 失敗するので
+$ apache2ctl -M
+apache2: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2 for ServerName
+Loaded Modules:
+ core_module (static)
+ log_config_module (static)
+ logio_module (static)
+ version_module (static)
+ mpm_worker_module (static)
+ http_module (static)
+ so_module (static)
+ alias_module (shared)
+ auth_basic_module (shared)
+ authn_file_module (shared)
+ authz_default_module (shared)
+ authz_groupfile_module (shared)
+ authz_host_module (shared)
+ authz_user_module (shared)
+ autoindex_module (shared)
+ cgid_module (shared)
+ deflate_module (shared)
+ dir_module (shared)
+ env_module (shared)
+ mime_module (shared)
+ negotiation_module (shared)
+ reqtimeout_module (shared)
+ rewrite_module (shared)
+ setenvif_module (shared)
+ status_module (shared)
+Syntax OK
+----
+
+.expiresモジュール
+----
+$ cat apache2/mods-available/expires.load
+LoadModule expires_module /usr/lib/apache2/modules/mod_expires.so
+$ ls -l /usr/lib/apache2/modules/mod_expires.so
+-rw-r--r-- 1 root root 14712 May 28  2018 /usr/lib/apache2/modules/mod_expires.so
+$ ldd  /usr/lib/apache2/modules/mod_expires.so
+        linux-vdso.so.1 =>  (0x00007fffe47f8000)
+        libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f1476f8c000)
+        libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f1476bff000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007f14773ac000)
+----
+
+.expiresモジュールを有効化
+----
+$ a2enmod expires
+----

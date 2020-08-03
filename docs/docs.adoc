@@ -1,0 +1,8 @@
+== ドキュメントの生成
+
+----
+$ make docs
+$ make nginx
+----
+
+* http://localhost へアクセス
